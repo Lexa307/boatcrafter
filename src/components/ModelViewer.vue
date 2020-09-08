@@ -2,8 +2,14 @@
   <div class="wrapper">
     <div class="sidebar">
       <p><b>Тип дна</b></p>
-      <input v-on:change="loggin" v-model="floor_type" name="floor_type" type="radio" value="keel"> Килевое
-      <input v-on:change="loggin" v-model="floor_type" name="floor_type" type="radio" value="flat"> Плоское
+      <input v-on:change="changeFloor" v-model="floor_type" name="floor_type" type="radio" value="keel"> Килевое
+      <input v-on:change="changeFloor" v-model="floor_type" name="floor_type" type="radio" value="flat"> Плоское
+      <p><b>Боковая полоса</b></p>
+      <input v-on:change="setSideBand" v-model="side_band" name="side_band" type="checkbox" value="true">
+      <p><b>Цвет баллонов</b></p>
+      <input type="color" v-on:change="setMainColor($event)" v-model="main_color">
+      <p><b>Цвет носовой части</b></p>
+      <input type="color" v-on:change="setNoseColor($event)" v-model="nose_color">
     </div>
     <canvas id="renderCanvas"></canvas>
   </div>
@@ -43,7 +49,6 @@ window.addEventListener('DOMContentLoaded', function() {
         camera.attachControl(canvas, true);
         camera.lowerRadiusLimit = 3;
         camera.upperRadiusLimit = 6;
-        console.log("loadfunc", SceneLoader.ImportMesh);
         // Create a basic light, aiming 0,1,0 - meaning, to the sky.
         new HemisphericLight('light1', new Vector3(0,1,0), scene);
         new DirectionalLight("DirectionalLight", new Vector3(0, 1, 0), scene);
@@ -57,7 +62,7 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     scene = createScene();
-    
+    console.log(scene.meshes);
     engine.runRenderLoop(function() {
         scene.render();
     });
@@ -77,21 +82,47 @@ function SetGroupVisibility(obj, statement){
 export default {
   name: 'ModelViewer',
   props: {
-    initialFloorType: String
+    initialFloorType: String,
+    initialSideBand: Boolean
   },
   methods: {
-    loggin: function () {
+    changeFloor: function () {
       let flatFloor = scene.meshes.find( mesh =>{return (mesh.name === "дно_плоское") });
       let keelFloor = scene.meshes.find( mesh =>{return (mesh.name === "дно_киль") });
       SetGroupVisibility(flatFloor, false); 
       SetGroupVisibility(keelFloor, false); 
       let floorObj = (this.floor_type == "flat") ? flatFloor : keelFloor;
       SetGroupVisibility(floorObj, true);     
+    },
+    setSideBand: function (){
+     let sideBandMesh = scene.meshes.find( mesh =>{return (mesh.name === "боковая_полоса") });
+     SetGroupVisibility(sideBandMesh, this.side_band);
+    },
+    setMainColor: function ( e ){
+      const element = e.target;
+      let cilinder = scene.meshes.find( mesh =>{return (mesh.name === "цилиндр") });
+      let value = element.value.match(/[A-Za-z0-9]{2}/g);
+      // ["XX", "XX", "XX"] -> [n, n, n]
+      value = value.map( v => { return parseInt(v, 16) });
+      cilinder.material.albedoColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
+      cilinder.material.specularColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
+    },
+    setNoseColor: function ( e ){
+      const element = e.target;
+      let nose = scene.meshes.find( mesh =>{return (mesh.name === "нос") });
+      let value = element.value.match(/[A-Za-z0-9]{2}/g);
+      // ["XX", "XX", "XX"] -> [n, n, n]
+      value = value.map( v => { return parseInt(v, 16) });
+      nose.material.albedoColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
+      nose.material.specularColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
     }
   },
   data: function () {
     return {
-      floor_type: this.initialFloorType
+      floor_type: this.initialFloorType,
+      side_band: this.initialSideBand,
+      main_color: "#FFFFFF",
+      nose_color: "#141414",
     }
   }
 }
