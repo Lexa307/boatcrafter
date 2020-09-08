@@ -7,9 +7,9 @@
       <p><b>Боковая полоса</b></p>
       <input v-on:change="setSideBand" v-model="side_band" name="side_band" type="checkbox" value="true">
       <p><b>Цвет баллонов</b></p>
-      <input type="color" v-on:change="setMainColor($event)" v-model="main_color">
+      <input type="color" v-on:input="setMainColor($event)" v-model="main_color">
       <p><b>Цвет носовой части</b></p>
-      <input type="color" v-on:change="setNoseColor($event)" v-model="nose_color">
+      <input type="color" v-on:input="setNoseColor($event)" v-model="nose_color">
     </div>
     <canvas id="renderCanvas"></canvas>
   </div>
@@ -49,6 +49,7 @@ window.addEventListener('DOMContentLoaded', function() {
         camera.attachControl(canvas, true);
         camera.lowerRadiusLimit = 3;
         camera.upperRadiusLimit = 6;
+        camera.panningSensibility = 0;
         // Create a basic light, aiming 0,1,0 - meaning, to the sky.
         new HemisphericLight('light1', new Vector3(0,1,0), scene);
         new DirectionalLight("DirectionalLight", new Vector3(0, 1, 0), scene);
