@@ -8,6 +8,8 @@
       <input v-on:change="setSideBand" v-model="side_band" name="side_band" type="checkbox" value="true">
       <p><b>Полимерная защита дна</b></p>
       <input v-on:change="setPolymerProtection" v-model="polymer_protect" name="polymer_protect" type="checkbox">
+      <p><b>Цвет полимерной защиты</b></p>
+      <input type="color" v-on:input="setPolymerColor($event)" v-model="polymer_color">
       <p><b>Цвет баллонов</b></p>
       <input type="color" v-on:input="setMainColor($event)" v-model="main_color">
       <p><b>Цвет дна</b></p>
@@ -155,7 +157,7 @@ export default {
       cones.material.albedoColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
       cones.material.specularColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
     },
-      setFloorColor: function ( e ){
+    setFloorColor: function ( e ){
       const element = e.target;
       let value = element.value.match(/[A-Za-z0-9]{2}/g);
       // ["XX", "XX", "XX"] -> [n, n, n]
@@ -163,6 +165,15 @@ export default {
       let FloorMaterial = scene.materials.find( material =>{return (material.name === "ПВХ_Дно") });
       FloorMaterial.albedoColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
       FloorMaterial.specularColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
+    },
+    setPolymerColor: function ( e ){
+      const element = e.target;
+      let value = element.value.match(/[A-Za-z0-9]{2}/g);
+      // ["XX", "XX", "XX"] -> [n, n, n]
+      value = value.map( v => { return parseInt(v, 16) });
+      let PolymerMaterial = scene.materials.find( material =>{return (material.name === "Полимер") });
+      PolymerMaterial.albedoColor.set(value[0]/255, value[1]/255, value[2]/255);
+      PolymerMaterial.specularColor.set(value[0]/255, value[1]/255, value[2]/255);
     },
   },
   data: function () {
@@ -174,7 +185,8 @@ export default {
       nose_color: "#141414",
       rope_color: "",
       cone_color: "#141414",
-      floor_color:"#141414"
+      floor_color:"#141414",
+      polymer_color:"#5E7AE7"
     }
   }
 }
