@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <ModelViewer initialFloorType="keel" :initialSideBand="true"/>
+    <ModelViewer initialFloorType="keel" :initialSideBand="true" :polymerProtection="false"/>
   </div>
 </template>
 
