@@ -136,6 +136,14 @@ export default {
       let flatFloor = FindMeshByName("дно_плоское");
       let keelFloor =  FindMeshByName("дно_киль");
       let ChangeMaterial = (this.polymer_protect) ? protection.material : scene.materials.find( material =>{return (material.name === "ПВХ_Дно") });
+      let UnderProtectMaterial = scene.materials.find( material =>{return (material.name === "Черый ПВХ_полимер") });
+      if(this.polymer_protect){
+        UnderProtectMaterial.albedoColor = protection.material.albedoColor;
+        UnderProtectMaterial.specularColor = protection.material.specularColor;
+      }else{
+        UnderProtectMaterial.albedoColor = new Color3(0.007, 0.007, 0.007);
+        UnderProtectMaterial.specularColor = new Color3(0.007, 0.007, 0.007);
+      }
       flatFloor.material = keelFloor.material = ChangeMaterial;
     },
     setConeColor: function ( e ){
