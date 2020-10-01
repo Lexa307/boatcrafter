@@ -4,6 +4,10 @@
       <p><b>Тип дна</b></p>
       <input v-on:change="changeFloor" v-model="floor_type" name="floor_type" type="radio" value="keel"> Килевое
       <input v-on:change="changeFloor" v-model="floor_type" name="floor_type" type="radio" value="flat"> Плоское
+      <p><b>Длинна весел</b></p>
+      <input v-on:change="changeOarLength" v-model="oar_length" name="oar_length" type="radio" value="1.6"> 1.6 м
+      <input v-on:change="changeOarLength" v-model="oar_length" name="oar_length" type="radio" value="1.8"> 1.8 м
+      <input v-on:change="changeOarLength" v-model="oar_length" name="oar_length" type="radio" value="2.0"> 2.0 м
       <p><b>Боковая полоса</b></p>
       <input v-on:change="setSideBand" v-model="side_band" name="side_band" type="checkbox" value="true">
       <p><b>Полимерная защита дна</b></p>
@@ -18,6 +22,9 @@
       <input type="color" v-on:input="setNoseColor($event)" v-model="nose_color">
       <p><b>Цвет концевиков баллонов</b></p>
       <input type="color" v-on:input="setConeColor($event)" v-model="cone_color">
+      <p><b>Зацеп на носу</b></p>
+      <input v-on:change="changeNoseHookType" v-model="nose_hook_type" name="nose_hook_type" type="radio" value="handle_hook"> Ручка
+      <input v-on:change="changeNoseHookType" v-model="nose_hook_type" name="nose_hook_type" type="radio" value="ear_hook"> Проушина
     </div>
     <canvas id="renderCanvas"></canvas>
   </div>
@@ -64,11 +71,12 @@ window.addEventListener('DOMContentLoaded', function() {
         // Create a basic light, aiming 0,1,0 - meaning, to the sky.
         new HemisphericLight('light1', new Vector3(0,1,0), scene);
         new DirectionalLight("DirectionalLight", new Vector3(0, 1, 0), scene);
-        SceneLoader.ImportMesh(["цилиндр","дно_плоское","дно_киль"],"./models/", "лодка_сборка1.glb", scene, function () {
-        let flatFloor = FindMeshByName("дно_плоское");
-        SetGroupVisibility(flatFloor, false); 
-        let protection = FindMeshByName("полимерная_защита");
-        SetGroupVisibility(protection, false);
+        SceneLoader.ImportMesh(["цилиндр","дно_плоское","дно_киль"],"./models/", "лодка_сборка4.glb", scene, function () {
+        SetGroupVisibility(FindMeshByName("дно_плоское"), false); 
+        SetGroupVisibility(FindMeshByName("полимерная_защита"), false);
+        SetGroupVisibility(FindMeshByName("весло_1.8"), false);
+        SetGroupVisibility(FindMeshByName("весло_2.0"), false);
+        SetGroupVisibility(FindMeshByName("Проушина"), false);
       });
         // Return the created scene.
       return scene;
@@ -97,7 +105,9 @@ export default {
   props: {
     initialFloorType: String,
     initialSideBand: Boolean,
-    polymerProtection: Boolean
+    polymerProtection: Boolean,
+    oarInitialLength: Number,
+    noseInitialHookType: String
   },
   methods: {
     
@@ -175,12 +185,27 @@ export default {
       PolymerMaterial.albedoColor.set(value[0]/255, value[1]/255, value[2]/255);
       PolymerMaterial.specularColor.set(value[0]/255, value[1]/255, value[2]/255);
     },
+    changeOarLength: function (){
+      switch (this.oar_length){
+        case "1.6": SetGroupVisibility(FindMeshByName("весло_1.6"), true); SetGroupVisibility(FindMeshByName("весло_1.8"), false); SetGroupVisibility(FindMeshByName("весло_2.0"), false); break;
+        case "1.8": SetGroupVisibility(FindMeshByName("весло_1.6"), false); SetGroupVisibility(FindMeshByName("весло_1.8"), true); SetGroupVisibility(FindMeshByName("весло_2.0"), false); break;
+        case "2.0": SetGroupVisibility(FindMeshByName("весло_1.6"), false); SetGroupVisibility(FindMeshByName("весло_1.8"), false); SetGroupVisibility(FindMeshByName("весло_2.0"), true); break;
+      }
+    },
+    changeNoseHookType: function (){
+      switch (this.nose_hook_type){
+        case "handle_hook": SetGroupVisibility(FindMeshByName("ручка_носовая"), true); SetGroupVisibility(FindMeshByName("Проушина"), false); break;
+        case "ear_hook": SetGroupVisibility(FindMeshByName("ручка_носовая"), false); SetGroupVisibility(FindMeshByName("Проушина"), true); break;
+      }
+    }
   },
   data: function () {
     return {
       floor_type: this.initialFloorType,
       side_band: this.initialSideBand,
       polymer_protect: this.polymerProtection,
+      oar_length: this.oarInitialLength,
+      nose_hook_type: this.noseInitialHookType,
       main_color: "#FFFFFF",
       nose_color: "#141414",
       rope_color: "",
