@@ -2,8 +2,8 @@
   <div class="wrapper">
     <div class="sidebar">
       <p><b>Тип дна</b></p>
-      <input v-on:change="changeFloor" v-model="floor_type" name="floor_type" type="radio" value="keel"> Килевое
-      <input v-on:change="changeFloor" v-model="floor_type" name="floor_type" type="radio" value="flat"> Плоское
+      <input v-on:change="changeFloor" v-model="initialFloorType" name="floor_type" type="radio" value="keel"> Килевое
+      <input v-on:change="changeFloor" v-model="initialFloorType" name="floor_type" type="radio" value="flat"> Плоское
       <p><b>Длинна весел</b></p>
       <input v-on:change="changeOarLength" v-model="oar_length" name="oar_length" type="radio" value="1.6"> 1.6 м
       <input v-on:change="changeOarLength" v-model="oar_length" name="oar_length" type="radio" value="1.8"> 1.8 м
@@ -23,8 +23,8 @@
       <p><b>Цвет концевиков баллонов</b></p>
       <input type="color" v-on:input="setConeColor($event)" v-model="cone_color">
       <p><b>Зацеп на носу</b></p>
-      <input v-on:change="changeNoseHookType" v-model="nose_hook_type" name="nose_hook_type" type="radio" value="handle_hook"> Ручка
-      <input v-on:change="changeNoseHookType" v-model="nose_hook_type" name="nose_hook_type" type="radio" value="ear_hook"> Проушина
+      <input v-on:change="changeNoseHookCount" v-model="noseHookCount" name="nose_hook_count" type="radio" value="1"> 1 ручка
+      <input v-on:change="changeNoseHookCount" v-model="noseHookCount" name="nose_hook_count" type="radio" value="2"> 2 ручки
     </div>
     <canvas id="renderCanvas"></canvas>
   </div>
@@ -56,47 +56,47 @@ let scene;
 let FindMeshByName = MeshName => {
  return scene.meshes.find( mesh => {return (mesh.name === MeshName) });
 }
-window.addEventListener('DOMContentLoaded', function() {
-    var canvas = document.getElementById('renderCanvas');
-    var engine = new Engine(canvas, true);
-    var createScene = function() {
-        // Create a basic BJS Scene object.
-        var scene = new Scene(engine);
-        scene.clearColor = new Color3(1,1,1);
-        var camera = new ArcRotateCamera("Camera", 0, 0.8, 6, Vector3.Zero(), scene);
-        camera.attachControl(canvas, true);
-        camera.lowerRadiusLimit = 3;
-        camera.upperRadiusLimit = 6;
-        camera.panningSensibility = 0;
-        // Create a basic light, aiming 0,1,0 - meaning, to the sky.
-        new HemisphericLight('light1', new Vector3(0,1,0), scene);
-        new DirectionalLight("DirectionalLight", new Vector3(0, 1, 0), scene);
-        SceneLoader.ImportMesh(["цилиндр","дно_плоское","дно_киль"],"./models/", "лодка_сборка4.glb", scene, function () {
-        SetGroupVisibility(FindMeshByName("дно_плоское"), false); 
-        SetGroupVisibility(FindMeshByName("полимерная_защита"), false);
-        SetGroupVisibility(FindMeshByName("весло_1.8"), false);
-        SetGroupVisibility(FindMeshByName("весло_2.0"), false);
-        SetGroupVisibility(FindMeshByName("Проушина"), false);
-      });
-        // Return the created scene.
-      return scene;
-    }
+// window.addEventListener('DOMContentLoaded', function() {
+//     let canvas = document.getElementById('renderCanvas');
+//     let engine = new Engine(canvas, true);
+//     let CreateScene = function() {
+//         // Create a basic BJS Scene object.
+//         let scene = new Scene(engine);
+//         scene.clearColor = new Color3(1,1,1);
+//         let camera = new ArcRotateCamera("Camera", 0, 0.8, 6, Vector3.Zero(), scene);
+//         camera.attachControl(canvas, true);
+//         camera.lowerRadiusLimit = 3;
+//         camera.upperRadiusLimit = 6;
+//         camera.panningSensibility = 0;
+//         // Create a basic light, aiming 0,1,0 - meaning, to the sky.
+//         new HemisphericLight('light1', new Vector3(0,1,0), scene);
+//         new DirectionalLight("DirectionalLight", new Vector3(0, 1, 0), scene);
+//         SceneLoader.ImportMesh(["цилиндр","дно_плоское","дно_киль"],"./models/", "лодка_сборка4.glb", scene, function () {
+//         SetGroupVisibility(FindMeshByName("дно_плоское"), false); 
+//         SetGroupVisibility(FindMeshByName("полимерная_защита"), false);
+//         SetGroupVisibility(FindMeshByName("весло_1.8"), false);
+//         SetGroupVisibility(FindMeshByName("весло_2.0"), false);
+//         SetGroupVisibility(FindMeshByName("Проушина"), false);
+//       });
+//         // Return the created scene.
+//       return scene;
+//     }
 
-    scene = createScene();
-    console.log(scene);
-    engine.runRenderLoop(function() {
-        scene.render();
-    });
+//     scene = CreateScene();
+//     console.log(scene);
+//     engine.runRenderLoop(function() {
+//         scene.render();
+//     });
 
-    window.addEventListener('resize', function() {
-        engine.resize();
-    });
-});
-function SetGroupVisibility(obj, statement){
+//     window.addEventListener('resize', function() {
+//         engine.resize();
+//     });
+// });
+function SetGroupVisibility(obj, statement) {
   obj.isVisible = statement;
   let childs = obj.getChildMeshes();
   if(!childs.length) return;
-  for(let i = 0; i < childs.length; i++){
+  for(let i = 0; i < childs.length; i++) {
     childs[i].isVisible = statement;
   } 
 }
@@ -107,23 +107,67 @@ export default {
     initialSideBand: Boolean,
     polymerProtection: Boolean,
     oarInitialLength: Number,
-    noseInitialHookType: String
+    noseHookCount: Number,
+    noseEarHook: Boolean,
+    upperHooks: Boolean
+  },
+  mounted: function () {
+    let canvas = document.getElementById('renderCanvas');
+    let engine = new Engine(canvas, true);
+    
+    let CreateScene = function(initialFloorType, polymerProtection, oarInitialLength, noseEarHook, noseHookCount) {
+        // Create a basic BJS Scene object.
+        let scene = new Scene(engine);
+        scene.clearColor = new Color3(1,1,1);
+        let camera = new ArcRotateCamera("Camera", 0, 0.8, 6, Vector3.Zero(), scene);
+        camera.attachControl(canvas, true);
+        camera.lowerRadiusLimit = 3;
+        camera.upperRadiusLimit = 6;
+        camera.panningSensibility = 0;
+        // Create a basic light, aiming 0,1,0 - meaning, to the sky.
+        new HemisphericLight('light1', new Vector3(0,1,0), scene);
+        new DirectionalLight("DirectionalLight", new Vector3(0, 1, 0), scene);
+        SceneLoader.ImportMesh(["цилиндр","дно_плоское","дно_киль"],"./models/", "лодка_сборка4.glb", scene, function () {
+          // Init boat floor type depends on prop value
+
+        SetGroupVisibility(FindMeshByName("дно_плоское"), !("flat" != initialFloorType));
+        SetGroupVisibility(FindMeshByName("дно_киль"), !("keel" != initialFloorType));
+
+        SetGroupVisibility(FindMeshByName("полимерная_защита"), polymerProtection);
+
+        SetGroupVisibility(FindMeshByName("весло_1.6"), !(1.6 != oarInitialLength));
+        SetGroupVisibility(FindMeshByName("весло_1.8"),  !(1.8 != oarInitialLength));
+        SetGroupVisibility(FindMeshByName("весло_2.0"), !(2.0 != oarInitialLength)); 
+
+        SetGroupVisibility(FindMeshByName("ручка_носовая"), !(1 != noseHookCount));
+        SetGroupVisibility(FindMeshByName("ручки_носовые"), !(2 != noseHookCount));
+
+        SetGroupVisibility(FindMeshByName("Проушина"), noseEarHook);
+      });
+        // Return the created scene.
+      return scene;
+    }
+
+    scene = CreateScene(this.initialFloorType, this.polymerProtection, this.oarInitialLength, this.noseEarHook, this.noseHookCount);
+    engine.runRenderLoop(function() {
+        scene.render();
+    });
+
+    window.addEventListener('resize', function() {
+        engine.resize();
+    });
   },
   methods: {
     
     changeFloor: function () {
-      let flatFloor = FindMeshByName("дно_плоское");
-      let keelFloor = FindMeshByName("дно_киль");
-      SetGroupVisibility(flatFloor, false); 
-      SetGroupVisibility(keelFloor, false); 
-      let floorObj = (this.floor_type == "flat") ? flatFloor : keelFloor;
-      SetGroupVisibility(floorObj, true);     
+        SetGroupVisibility(FindMeshByName("дно_плоское"), !("flat" != this.initialFloorType));
+        SetGroupVisibility(FindMeshByName("дно_киль"), !("keel" != this.initialFloorType));  
     },
-    setSideBand: function (){
-     let sideBandMesh = FindMeshByName("боковая_полоса");
-     SetGroupVisibility(sideBandMesh, this.side_band);
+    setSideBand: function () {
+      let sideBandMesh = FindMeshByName("боковая_полоса");
+      SetGroupVisibility(sideBandMesh, this.side_band);
     },
-    setMainColor: function ( e ){
+    setMainColor: function ( e ) {
       const element = e.target;
       let cilinder = FindMeshByName("цилиндр");
       let value = element.value.match(/[A-Za-z0-9]{2}/g);
@@ -132,7 +176,7 @@ export default {
       cilinder.material.albedoColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
       cilinder.material.specularColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
     },
-    setNoseColor: function ( e ){
+    setNoseColor: function ( e ) {
       const element = e.target;
       let nose = FindMeshByName("нос");
       let value = element.value.match(/[A-Za-z0-9]{2}/g);
@@ -141,24 +185,24 @@ export default {
       nose.material.albedoColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
       nose.material.specularColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
     },
-    setPolymerProtection: function (){
+    setPolymerProtection: function () {
       // const element = e.target; Черый ПВХ.003
       let protection = FindMeshByName("полимерная_защита");
       SetGroupVisibility(protection, this.polymer_protect);
       let flatFloor = FindMeshByName("дно_плоское");
-      let keelFloor =  FindMeshByName("дно_киль");
+      let keelFloor = FindMeshByName("дно_киль");
       let ChangeMaterial = (this.polymer_protect) ? protection.material : scene.materials.find( material =>{return (material.name === "ПВХ_Дно") });
       let UnderProtectMaterial = scene.materials.find( material =>{return (material.name === "Черый ПВХ_полимер") });
       if(this.polymer_protect){
         UnderProtectMaterial.albedoColor = protection.material.albedoColor;
         UnderProtectMaterial.specularColor = protection.material.specularColor;
-      }else{
+      } else {
         UnderProtectMaterial.albedoColor = new Color3(0.007, 0.007, 0.007);
         UnderProtectMaterial.specularColor = new Color3(0.007, 0.007, 0.007);
       }
       flatFloor.material = keelFloor.material = ChangeMaterial;
     },
-    setConeColor: function ( e ){
+    setConeColor: function ( e ) {
       const element = e.target;
       let cones = FindMeshByName("концевики_баллонов");
       let value = element.value.match(/[A-Za-z0-9]{2}/g);
@@ -167,7 +211,7 @@ export default {
       cones.material.albedoColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
       cones.material.specularColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
     },
-    setFloorColor: function ( e ){
+    setFloorColor: function ( e ) {
       const element = e.target;
       let value = element.value.match(/[A-Za-z0-9]{2}/g);
       // ["XX", "XX", "XX"] -> [n, n, n]
@@ -176,7 +220,7 @@ export default {
       FloorMaterial.albedoColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
       FloorMaterial.specularColor = new Color3(value[0]/255, value[1]/255, value[2]/255);
     },
-    setPolymerColor: function ( e ){
+    setPolymerColor: function ( e ) {
       const element = e.target;
       let value = element.value.match(/[A-Za-z0-9]{2}/g);
       // ["XX", "XX", "XX"] -> [n, n, n]
@@ -185,27 +229,25 @@ export default {
       PolymerMaterial.albedoColor.set(value[0]/255, value[1]/255, value[2]/255);
       PolymerMaterial.specularColor.set(value[0]/255, value[1]/255, value[2]/255);
     },
-    changeOarLength: function (){
-      switch (this.oar_length){
+    changeOarLength: function () {
+      switch (this.oar_length) {
         case "1.6": SetGroupVisibility(FindMeshByName("весло_1.6"), true); SetGroupVisibility(FindMeshByName("весло_1.8"), false); SetGroupVisibility(FindMeshByName("весло_2.0"), false); break;
         case "1.8": SetGroupVisibility(FindMeshByName("весло_1.6"), false); SetGroupVisibility(FindMeshByName("весло_1.8"), true); SetGroupVisibility(FindMeshByName("весло_2.0"), false); break;
         case "2.0": SetGroupVisibility(FindMeshByName("весло_1.6"), false); SetGroupVisibility(FindMeshByName("весло_1.8"), false); SetGroupVisibility(FindMeshByName("весло_2.0"), true); break;
       }
     },
-    changeNoseHookType: function (){
-      switch (this.nose_hook_type){
-        case "handle_hook": SetGroupVisibility(FindMeshByName("ручка_носовая"), true); SetGroupVisibility(FindMeshByName("Проушина"), false); break;
-        case "ear_hook": SetGroupVisibility(FindMeshByName("ручка_носовая"), false); SetGroupVisibility(FindMeshByName("Проушина"), true); break;
-      }
+    changeNoseHookCount: function () {
+        console.log("event happened");
+        SetGroupVisibility(FindMeshByName("ручка_носовая"), !(1 != this.noseHookCount));
+        SetGroupVisibility(FindMeshByName("ручки_носовые"), !(2 != this.noseHookCount));
     }
   },
   data: function () {
     return {
-      floor_type: this.initialFloorType,
+      // floor_type: this.initialFloorType,
       side_band: this.initialSideBand,
       polymer_protect: this.polymerProtection,
       oar_length: this.oarInitialLength,
-      nose_hook_type: this.noseInitialHookType,
       main_color: "#FFFFFF",
       nose_color: "#141414",
       rope_color: "",
@@ -232,7 +274,7 @@ export default {
     flex-direction: column;
     
   }
-  @media screen and (max-width: 1320px) and (min-width: 961px){
+  @media screen and (max-width: 1320px) and (min-width: 961px) {
     #renderCanvas {
         margin-left: 20%;
     }
@@ -254,7 +296,7 @@ export default {
     -ms-flex: 1 1 auto;
     flex: 1 1 auto;
 }
-.sidebar{
+.sidebar {
   flex-direction: column;
     min-height: 0;
     width: 240px;
