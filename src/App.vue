@@ -7,7 +7,15 @@
     :oarInitialLength="oarInitialLength" 
     :noseHookCount="noseHookCount" 
     :noseEarHook="noseEarHook" 
-    :upperHooks="upperHooks"/>
+    :upperHooks="upperHooks"
+    :mainColor="mainColor"
+    :noseColor="noseColor"
+    :ropeColor="ropeColor"
+    :coneColor="coneColor"
+    :floorColor="floorColor"
+    :polymerColor="polymerColor"
+    :upperBackHooks="upperBackHooks"
+    />
   </div>
 </template>
 
@@ -26,7 +34,14 @@ export default {
       "oarInitialLength": 1.6,
       "noseHookCount": 2,
       "noseEarHook": true,
-      "upperHooks": true
+      "upperHooks": true,
+      "upperBackHooks": true,
+      "mainColor": "#FFFFFF",
+      "noseColor": "#141414",
+      "ropeColor": "",
+      "coneColor": "#141414",
+      "floorColor":"#141414",
+      "polymerColor":"#5E7AE7"
     }
   }
 }
