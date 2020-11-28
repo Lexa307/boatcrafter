@@ -169,7 +169,8 @@ export default {
         let FloorMaterial = scene.materials.find( material =>{return (material.name === "ПВХ_Дно") });
         FloorMaterial.albedoColor = new Color3().FromHexString(floorColor);
 
-        SetGroupVisibility(FindMeshByName("ручки_сверху"), !(1 != upperHooks));
+        SetGroupVisibility(FindMeshByName("ручки_сверху"), !(1 != upperHooks)); 
+        SetGroupVisibility(FindMeshByName("верхние_тросы"), !!(1 != upperHooks));
 
         SetGroupVisibility(FindMeshByName("ручки_верхние_сзади"), !(1 != upperBackHooks));
       });
@@ -249,6 +250,7 @@ export default {
     },
     setUpperHooks: function () {
       SetGroupVisibility(FindMeshByName("ручки_сверху"), !(1 != this.upper_hooks));
+      SetGroupVisibility(FindMeshByName("верхние_тросы"), !!(1 != this.upper_hooks));
     },
     setUpperBackHooks: function () {
       SetGroupVisibility(FindMeshByName("ручки_верхние_сзади"), !(1 != this.upper_back_hooks));
