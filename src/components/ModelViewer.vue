@@ -53,6 +53,10 @@
         <p><b>Ручки сверху (сзади)</b></p>
         <input v-on:change="setUpperBackHooks" v-model="upper_back_hooks" name="upper_hooks" type="checkbox">
       </div>
+      <div class="sidebar-item">
+        <p><b>Проушина</b></p>
+        <input v-on:change="setEarHook" v-model="nose_ear_hook" name="ear_hook" type="checkbox">
+      </div>
     </div>
     <canvas id="renderCanvas"></canvas>
   </div>
@@ -193,6 +197,10 @@ export default {
         SetGroupVisibility(FindMeshByName("дно_плоское"), !("flat" != this.floor_type));
         SetGroupVisibility(FindMeshByName("дно_киль"), !("keel" != this.floor_type));  
     },
+
+    setEarHook: function (){
+      SetGroupVisibility(FindMeshByName("Проушина"), this.nose_ear_hook);
+    },
     setSideBand: function () {
       SetGroupVisibility(FindMeshByName("боковая_полоса"), this.side_band);
     },
@@ -262,6 +270,7 @@ export default {
       nose_hook_count: this.noseHookCount,
       side_band: this.initialSideBand,
       polymer_protect: this.polymerProtection,
+      nose_ear_hook: this.noseEarHook,
       oar_length: this.oarInitialLength,
       upper_hooks: this.upperHooks,
       main_color: this.mainColor,
